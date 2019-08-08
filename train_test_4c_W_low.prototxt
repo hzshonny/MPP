@@ -1,0 +1,76 @@
+name: "MPP-LOW"
+layer {
+  name: "data"
+  type: "HDF5Data"
+  top: "data"
+  top: "score"
+  include {
+    phase: TRAIN
+  }
+  hdf5_data_param {
+    source: "abc2d6_tr_4c_W_low_h5.txt"
+    batch_size: 64
+  }
+}
+layer {
+  name: "data"
+  type: "HDF5Data"
+  top: "data"
+  top: "score"
+  include {
+    phase: TEST
+  }
+  hdf5_data_param {
+    source: "abc2d6_ts_4c_W_low_h5.txt"
+    batch_size: 100
+  }
+}
+
+
+
+layer {
+  name: "power1"
+  bottom: "data"
+  top: "smallinput"
+  type: "Power"
+  power_param {
+    power: 1
+    scale: 0.004
+    shift: 0
+  }
+}
+
+layer {
+  name: "fc5"
+  type: "InnerProduct"
+  bottom: "smallinput"
+  top: "pred"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
+  inner_product_param {
+    num_output: 1
+    weight_filler {
+      type: "gaussian"
+      std: 0.005
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+
+
+layer {
+  name: "loss"
+  type: "SmoothL1Loss"
+  bottom: "pred"
+  bottom: "score"
+  top: "loss"
+}
